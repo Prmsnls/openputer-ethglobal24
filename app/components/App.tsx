@@ -5,13 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Camera, Smile, Share, Trash2, LogOut } from "lucide-react";
 import { createClient } from '@supabase/supabase-js'
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
 
 // Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
+
+// Add your contract ABI and address
+const CONTRACT_ADDRESS = "0xf5526Ff322FBE97c31160A94A380093151Aa442F";
+const CONTRACT_ABI = [
+  "function analyzeSmile(string memory photoUrl) external payable",
+  "function getOracleFee() external view returns (uint256)",
+  // Add other contract functions as needed
+];
 
 interface Image {
   url: string;
@@ -22,6 +31,8 @@ interface Image {
 
 const App = () => {
   const { login, authenticated, user, logout } = usePrivy();
+  const { wallets } = useWallets();
+  const [contract, setContract] = useState<ethers.Contract | null>(null);
   const [images, setImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -31,7 +42,28 @@ const App = () => {
   useEffect(() => {
     loadExistingPhotos();
     initCamera();
-  }, []);
+    const initContract = async () => {
+      if (!authenticated || wallets.length === 0) return;
+      
+      try {
+        const wallet = wallets[0];
+        const provider = await wallet.getEthersProvider();
+        const signer = provider.getSigner();
+        
+        const smilePleaseContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          CONTRACT_ABI,
+          signer
+        );
+        
+        setContract(smilePleaseContract);
+      } catch (error) {
+        console.error('Error initializing contract:', error);
+      }
+    };
+
+    initContract();
+  }, [authenticated, wallets]);
 
   const initCamera = async () => {
     try {
@@ -142,6 +174,20 @@ const App = () => {
       const compressedBlob = await compressImage(blob);
       setUploadStatus('Keep smiling...');
       const uploadResult = await uploadImage(compressedBlob);
+      
+      // Submit to smart contract before database
+      setUploadStatus('Analyzing smile...');
+      if (!contract) throw new Error('Smart contract not initialized');
+      
+      // Get the oracle fee
+      const oracleFee = await contract.getOracleFee();
+      
+      // Call analyzeSmile with the required fee
+      const tx = await contract.analyzeSmile(uploadResult.url, {
+        value: oracleFee
+      });
+      setUploadStatus('Waiting for blockchain confirmation...');
+      await tx.wait(); // Wait for transaction to be mined
       
       const newImage = {
         url: uploadResult.url,

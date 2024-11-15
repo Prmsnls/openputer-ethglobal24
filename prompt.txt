@@ -1,0 +1,7 @@
+Score the smile in this photo between 1 to 5: https://ufyeaynayphypqycjfre.supabase.co/storage/v1/object/public/smiles/jop0wbg9c/1731696476733.jpg . 1 is no smile and 5 is a teethy genuine smile. Respond with ONLY a single number between 1-5
+
+Score the smile in this photo between 1 to 5: https://ufyeaynayphypqycjfre.supabase.co/storage/v1/object/public/smiles/jop0wbg9c/1731686278916.jpg . 1 is no smile and 5 is a teethy genuine smile. Respond with ONLY a single number between 1-5
+
+Score the smile in this photo between 1 to 5: https://ufyeaynayphypqycjfre.supabase.co/storage/v1/object/public/smiles/jop0wbg9c/1731698447522.jpg . 1 is no smile and 5 is a teethy genuine smile. Respond with ONLY a single number between 1-5
+
+Analyze the smile in this photo: https://ufyeaynayphypqycjfre.supabase.co/storage/v1/object/public/smiles/jop0wbg9c/1731698447522.jpg . Rate the smile intensity from 1 to 5, where 1 is no smile and 5 is a big genuine smile. Respond with ONLY a single number between 1-5.

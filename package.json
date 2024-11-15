@@ -57,6 +57,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-autoplay": "^8.2.1",
     "embla-carousel-react": "^8.2.0",
+    "face-api.js": "^0.22.2",
     "firebase": "^10.6.0",
     "input-otp": "^1.2.4",
     "js-beautify": "^1.14.11",

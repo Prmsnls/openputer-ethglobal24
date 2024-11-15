@@ -7,8 +7,15 @@ interface IAIOracle {
     function fee() external view returns (uint256);
 }
 
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+}
+
 contract SmilePlease {
     IAIOracle public aiOracle;
+    IERC20 public rewardToken;
+    uint256 public rewardAmount;
+    address public owner;
     
     mapping(bytes32 => string) public photoRequests; // requestId => photoUrl
     mapping(string => uint8) public smileScores; // photoUrl => smileScore
@@ -16,8 +23,11 @@ contract SmilePlease {
     event SmileAnalysisRequested(bytes32 indexed requestId, string photoUrl);
     event SmileAnalysisReceived(bytes32 indexed requestId, string photoUrl, uint8 smileScore);
     
-    constructor(address _aiOracleAddress) {
+    constructor(address _aiOracleAddress, address _rewardTokenAddress, uint256 _rewardAmount) {
         aiOracle = IAIOracle(_aiOracleAddress);
+        rewardToken = IERC20(_rewardTokenAddress);
+        rewardAmount = _rewardAmount;
+        owner = msg.sender;
     }
     
     function analyzeSmile(string memory photoUrl) external payable {
@@ -27,10 +37,10 @@ contract SmilePlease {
         // Construct the prompt for smile analysis
         string memory prompt = string(
             abi.encodePacked(
-                "Analyze the smile in this photo: ", 
-                photoUrl, 
-                ". Rate the smile intensity from 1 to 5, where 1 is no smile and 5 is a big genuine smile. ",
-                "Respond with ONLY a single number between 1-5."
+                "Photo URL: ", photoUrl, "\n",
+                "Task: Score the smile in this photo\n",
+                "Scale: 1 to 5 (1 = no smile, 5 = genuine teethy smile)\n",
+                "Instructions: Respond with ONLY a single number between 1-5"
             )
         );
         
@@ -46,11 +56,17 @@ contract SmilePlease {
         string memory photoUrl = photoRequests[requestId];
         require(bytes(photoUrl).length > 0, "Unknown request");
         
-        // Convert the response string to a number (assuming response is "1" to "5")
-        uint8 smileScore = uint8(bytes(response)[0] - 48); // Convert ASCII to number
+        bytes memory responseBytes = bytes(response);
+        require(responseBytes.length > 0, "Empty response");
+        uint8 smileScore = uint8(responseBytes[0]) - 48; // Convert ASCII to number
         require(smileScore >= 1 && smileScore <= 5, "Invalid score");
         
         smileScores[photoUrl] = smileScore;
+        delete photoRequests[requestId];
+        
+        if (smileScore > 3) {
+            require(rewardToken.transfer(tx.origin, rewardAmount), "Token transfer failed");
+        }
         
         emit SmileAnalysisReceived(requestId, photoUrl, smileScore);
     }
@@ -65,5 +81,15 @@ contract SmilePlease {
     
     function getOracleFee() external view returns (uint256) {
         return aiOracle.fee();
+    }
+    
+    function setRewardToken(address _newRewardToken) external {
+        require(msg.sender == owner, "Only owner can change reward token");
+        rewardToken = IERC20(_newRewardToken);
+    }
+    
+    function setRewardAmount(uint256 _newRewardAmount) external {
+        require(msg.sender == owner, "Only owner can change reward amount");
+        rewardAmount = _newRewardAmount;
     }
 }

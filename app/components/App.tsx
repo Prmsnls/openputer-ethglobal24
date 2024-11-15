@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Camera, Smile, Share, Trash2 } from "lucide-react";
+import { Camera, Smile, Share, Trash2, LogOut } from "lucide-react";
 import { createClient } from '@supabase/supabase-js'
+import { usePrivy } from '@privy-io/react-auth';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -20,23 +21,16 @@ interface Image {
 }
 
 const App = () => {
+  const { login, authenticated, user, logout } = usePrivy();
   const [images, setImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [userId, setUserId] = useState<string>('');
   const [uploadStatus, setUploadStatus] = useState<string>('');
 
   useEffect(() => {
-    const storedUserId = window.localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
-    setUserId(storedUserId);
-    
-    if (!window.localStorage.getItem('userId')) {
-      window.localStorage.setItem('userId', storedUserId);
-    }
-    
-    initCamera();
     loadExistingPhotos();
+    initCamera();
   }, []);
 
   const initCamera = async () => {
@@ -59,7 +53,7 @@ const App = () => {
   };
 
   const uploadImage = async (blob: Blob) => {
-    const fileName = `${userId}/${Date.now()}.jpg`;
+    const fileName = `${user!.id}/${Date.now()}.jpg`;
     
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -161,7 +155,7 @@ const App = () => {
       const { error } = await supabase
         .from('photos')
         .insert({
-          user_id: userId,
+          user_id: user!.id,
           image_url: uploadResult.url,
           timestamp: new Date().toISOString()
         });
@@ -244,7 +238,7 @@ const App = () => {
       const { error: dbError } = await supabase
         .from('photos')
         .delete()
-        .match({ user_id: userId, image_url: imageUrl });
+        .match({ user_id: user!.id, image_url: imageUrl });
 
       if (dbError) throw dbError;
 
@@ -252,7 +246,7 @@ const App = () => {
       const fileName = imageUrl.split('/').pop(); // Get filename from URL
       const { error: storageError } = await supabase.storage
         .from('smiles')
-        .remove([`${userId}/${fileName}`]);
+        .remove([`${user!.id}/${fileName}`]);
 
       if (storageError) throw storageError;
 
@@ -280,11 +274,10 @@ const App = () => {
   return (
     <div className="bg-yellow-100 min-h-screen">
       <div className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <div className="bg-white border-[3px] border-black p-4 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8">
-          <h1 className="text-2xl font-bold text-center">
+        <h1 className="text-2xl font-bold text-center mb-8">
           😊 Smile to Make Money 💰
-          </h1>
-        </div>
+        </h1>
+
 
         <div className="relative mb-6 max-w-[480px] mx-auto">
           <video
@@ -295,16 +288,38 @@ const App = () => {
           />
           <canvas ref={canvasRef} className="hidden" />
         </div>
-
-        <div className="text-center mb-8">
-          <Button
-            onClick={capturePhoto}
-            disabled={loading}
-            className="bg-[#90EE90] hover:bg-[#7CDF7C] text-black font-bold px-6 py-3 border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-          >
-            <Camera className="mr-2" />
-            Capture Smile!
-          </Button>
+        <div className="text-center mb-8 flex justify-center gap-4">
+          {authenticated && (
+            <div className="text-center mb-8">
+              <Button
+                onClick={capturePhoto}
+                disabled={loading}
+                className="bg-[#90EE90] hover:bg-[#7CDF7C] text-black font-bold px-6 py-3 border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <Camera className="mr-2" />
+                Capture Smile!
+              </Button>
+            </div>
+          )}
+          {authenticated ? (
+            <div className="text-center mb-4">
+              <Button
+                onClick={logout}
+                className="bg-[#FFB6C1] hover:bg-[#FF9CAE] text-black font-bold px-4 py-2 border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <LogOut />
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center mb-4">
+              <Button
+                onClick={login}
+                className="bg-[#90EE90] hover:bg-[#7CDF7C] text-black font-bold px-6 py-3 border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              >
+                Connect Wallet to Smile
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -322,14 +337,21 @@ const App = () => {
                   {new Date(image.timestamp).toLocaleString()}
                 </p>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleSmileBack(image.url)}
-                    className="bg-[#FFD700] border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] h-8 flex items-center gap-1 px-2"
-                  >
-                    <Smile className="h-4 w-4" />
-                    <span>{image.smileCount || 0}</span>
-                  </Button>
+                  {authenticated ? (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleSmileBack(image.url)}
+                      className="bg-[#FFD700] border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] h-8 flex items-center gap-1 px-2"
+                    >
+                      <Smile className="h-4 w-4" />
+                      <span>{image.smileCount || 0}</span>
+                    </Button>
+                  ) : (
+                    <div className="bg-[#FFD700] border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] h-8 flex items-center gap-1 px-2">
+                      <Smile className="h-4 w-4" />
+                      <span>{image.smileCount || 0}</span>
+                    </div>
+                  )}
                   <Button 
                     variant="outline" 
                     size="icon" 
@@ -337,7 +359,7 @@ const App = () => {
                   >
                     <Share className="h-4 w-4" />
                   </Button>
-                  {image.url.includes(`${userId}/`) && (
+                  {authenticated && user && image.url.includes(`${user.id}/`) && (
                     <Button 
                       variant="outline" 
                       size="icon" 

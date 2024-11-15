@@ -282,7 +282,7 @@ const App = () => {
       <div className="container mx-auto px-4 py-8 max-w-[1200px]">
         <div className="bg-white border-[3px] border-black p-4 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8">
           <h1 className="text-2xl font-bold text-center">
-            Ssup?
+          Ssup?
           </h1>
         </div>
 

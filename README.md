@@ -1,30 +1,62 @@
-## make real
+# 😊 Smile to Make Money 💰
 
+A fun, interactive web application that lets users capture and share smiles while earning virtual appreciation through smile-back interactions.
 
+## Features
 
-https://github.com/tldraw/draw-a-ui/assets/23072548/aa181d77-6ce6-41de-990d-e5905153579e
+- 📸 Real-time camera feed with selfie mode
+- 🖼️ Photo capture with automatic image compression
+- 👍 Social interactions with "smile back" feature
+- 🗑️ Personal photo management
+- 🌐 Share functionality
+- 📱 Responsive design for all devices
 
+## Technical Stack
 
-
-- To learn more about this project [read our blog post](https://tldraw.substack.com/p/make-real-the-story-so-far)
-- To read our guide to using the app [visit our discord](https://discord.gg/t7h8ECmqDW)
+- **Frontend**: Next.js with TypeScript
+- **UI Components**: Custom components with Tailwind CSS
+- **Icons**: Lucide React
+- **Styling**: Custom neomorphic design with playful shadows
 
 ## Getting Started
 
-To run the project locally...
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up your environment variables
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-Install the dependencies.
+## Database Schema
 
+### Photos Table
+- `user_id`: string
+- `image_url`: string
+- `timestamp`: timestamp
+- `smile_count`: integer
 
-```bash
-npm i
-```
+## Features in Detail
 
-Run the development server.
+### Image Processing
+- Automatic image compression
+- Maximum dimensions: 800x600
+- JPEG compression with 60% quality
+- Mirrored selfie view
 
-```bash
-npm run dev
-```
+### User Experience
+- Persistent user identification
+- Loading states with animated feedback
+- Optimistic UI updates
+- Error handling with user-friendly messages
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+## Contributing
 
+Feel free to submit issues and pull requests!
+
+---
+
+Built with ❤️ and 😊

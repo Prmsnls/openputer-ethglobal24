@@ -112,7 +112,7 @@ export const ImageGrid = ({
               </div>
               {image.hasWon && (
                 <p className="text-green-600 font-bold mt-1">
-                  🏆 Tokens awarded! 🎉
+                  🎉 0.001 <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" alt="USDC" className="inline h-4 w-4" /> awarded! 🎉
                 </p>
               )}
             </div>

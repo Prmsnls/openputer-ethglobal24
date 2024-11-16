@@ -300,10 +300,10 @@ const App = () => {
         gasLimit: 500000
       });
 
-      setUploadStatus('Waiting for blockchain confirmation...');
+      setUploadStatus('Your smile is being submitted on-chain... 😊');
       await tx.wait(1);
       
-      setUploadStatus('Analyzing your smile... 😊');
+      setUploadStatus('On-chain ai analysis in progress... 😊');
     } catch (error) {
       console.error('Error processing photo:', error);
       setUploadStatus(error.message || 'Failed to process photo');
@@ -356,17 +356,35 @@ const App = () => {
   return (
     <div className="bg-yellow-100 min-h-screen">
       <div className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <h1 className="text-2xl font-bold text-center mb-8">
-          😊 Smile to Make Money 💰
-        </h1>
-
+        <div className="bg-[#FFE5E5] border-[3px] border-black rounded-lg p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-black text-center mb-6 transform -rotate-2">
+            Why so serious? 🤔
+          </h1>
+          <h2 className="text-2xl font-bold text-center mb-6 transform rotate-1">
+            😁 Smile and Make 0.001 
+            <img 
+              src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" 
+              alt="USDC" 
+              className="inline h-6 w-6 mb-1 mx-2 border-2 border-black rounded-full" 
+            />
+            on
+            <img 
+              src="https://avatars.githubusercontent.com/u/108554348?v=4" 
+              alt="Base" 
+              className="inline h-6 w-6 mb-1 mx-2 border-2 border-black rounded-full" 
+            />
+          </h2>
+          <p className="text-lg font-semibold text-center bg-[#90EE90] border-[3px] border-black rounded-md p-3 transform -rotate-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            On-chain smile analysis and token distribution on Base
+          </p>
+        </div>
 
         <div className="relative mb-6 max-w-[480px] mx-auto">
           <video
             ref={videoRef}
             autoPlay
             playsInline
-            className="w-full h-[270px] object-cover border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-black"
+            className="w-full h-[360px] object-cover border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-black"
           />
           <canvas ref={canvasRef} className="hidden" />
         </div>

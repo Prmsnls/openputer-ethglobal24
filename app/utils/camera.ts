@@ -21,8 +21,8 @@ export const initCamera = async (videoRef: React.RefObject<HTMLVideoElement>) =>
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'user',
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
+        width: { ideal: 480 },
+        height: { ideal: 360 }
       }
     });
     if (videoRef.current) {
@@ -59,8 +59,8 @@ export const compressImage = async (blob: Blob): Promise<Blob> => {
     img.src = URL.createObjectURL(blob);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 1280;
-      const MAX_HEIGHT = 960;
+      const MAX_WIDTH = 480;
+      const MAX_HEIGHT = 360;
       let width = img.width;
       let height = img.height;
 

@@ -7,6 +7,8 @@ import { Camera, Smile, Share, Trash2, LogOut } from "lucide-react";
 import { createClient } from '@supabase/supabase-js'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
+import { ImageGrid } from './ImageGrid';
+import { initCamera, uploadImage, compressImage, loadExistingPhotos, handleSmileBack, deletePhoto } from '../utils/camera';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -19,14 +21,36 @@ const CONTRACT_ADDRESS = "0xf5526Ff322FBE97c31160A94A380093151Aa442F";
 const CONTRACT_ABI = [
   "function analyzeSmile(string memory photoUrl) external payable",
   "function getOracleFee() external view returns (uint256)",
-  // Add other contract functions as needed
+  "event SmileAnalysisReceived(bytes32 indexed requestId, string photoUrl, uint8 smileScore)"
 ];
+
+// Add Base network configuration at the top of the file
+const BASE_CHAIN_ID = 8453; // Mainnet Base
+const BASE_CONFIG = {
+  chainId: BASE_CHAIN_ID,
+  name: 'Base',
+  network: 'base',
+  rpcUrls: {
+    default: 'https://mainnet.base.org',
+    public: 'https://mainnet.base.org',
+  },
+  blockExplorers: {
+    default: { name: 'BaseScan', url: 'https://basescan.org' },
+  },
+  nativeCurrency: {
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+};
 
 interface Image {
   url: string;
   timestamp: string;
-  isLoading?: boolean;
+  isLoading: boolean;
   smileCount: number;
+  smileScore: number | undefined;
+  hasWon: boolean | undefined;
 }
 
 const App = () => {
@@ -38,110 +62,175 @@ const App = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [processedImages] = useState(new Set<string>());
 
   useEffect(() => {
-    loadExistingPhotos();
-    initCamera();
+    loadExistingPhotos().then(setImages);
+    initCamera(videoRef);
+    
     const initContract = async () => {
       if (!authenticated || wallets.length === 0) return;
       
       try {
         const wallet = wallets[0];
         const provider = await wallet.getEthersProvider();
-        const signer = provider.getSigner();
         
+        if (!provider) {
+          throw new Error('Failed to get provider');
+        }
+
+        const network = await provider.getNetwork();
+        
+        if (network.chainId !== BASE_CHAIN_ID) {
+          setUploadStatus('Switching to Base network...');
+          try {
+            await wallet.switchChain(BASE_CHAIN_ID);
+          } catch (switchError: any) {
+            if (switchError.code === 4902) {
+              try {
+                await provider.send('wallet_addEthereumChain', [{
+                  chainId: `0x${BASE_CHAIN_ID.toString(16)}`,
+                  chainName: BASE_CONFIG.name,
+                  nativeCurrency: BASE_CONFIG.nativeCurrency,
+                  rpcUrls: [BASE_CONFIG.rpcUrls.default, BASE_CONFIG.rpcUrls.public],
+                  blockExplorerUrls: [BASE_CONFIG.blockExplorers.default.url],
+                }]);
+                await wallet.switchChain(BASE_CHAIN_ID);
+              } catch (addError) {
+                console.error('Error adding Base chain:', addError);
+                throw new Error('Failed to add Base network to wallet');
+              }
+            } else {
+              throw switchError;
+            }
+          }
+        }
+
+        const updatedProvider = await wallet.getEthersProvider();
+        const currentNetwork = await updatedProvider.getNetwork();
+        if (currentNetwork.chainId !== BASE_CHAIN_ID) {
+          throw new Error('Failed to switch to Base network');
+        }
+
+        const signer = updatedProvider.getSigner();
         const smilePleaseContract = new ethers.Contract(
           CONTRACT_ADDRESS,
           CONTRACT_ABI,
           signer
         );
         
-        setContract(smilePleaseContract);
+        try {
+          await smilePleaseContract.getOracleFee();
+          setContract(smilePleaseContract);
+        } catch (error) {
+          console.error('Contract verification failed:', error);
+          throw new Error('Failed to connect to contract on Base');
+        }
+
+        // Add event listener after contract is initialized
+        if (smilePleaseContract) {
+          smilePleaseContract.on("SmileAnalysisReceived", 
+            async (requestId: string, photoUrl: string, smileScore: number) => {
+              // Check if we've already processed this image
+              if (processedImages.has(photoUrl)) {
+                console.log('Already processed this image, skipping:', photoUrl);
+                return;
+              }
+              processedImages.add(photoUrl);
+
+              const hasWon = smileScore > 3;
+              console.log('Smile analysis received:', { requestId, photoUrl, smileScore, hasWon });
+
+              if (hasWon) {
+                // Check if image already exists in Supabase
+                const { data: existingPhoto } = await supabase
+                  .from('photos')
+                  .select()
+                  .eq('image_url', photoUrl)
+                  .single();
+
+                if (!existingPhoto) {
+                  // Only insert if photo doesn't exist
+                  const { error } = await supabase
+                    .from('photos')
+                    .insert({
+                      user_id: user!.id,
+                      image_url: photoUrl,
+                      timestamp: new Date().toISOString(),
+                      smile_score: smileScore
+                    });
+
+                  if (error) {
+                    console.error('Error saving to Supabase:', error);
+                    setUploadStatus('Won tokens but failed to save photo');
+                    setTimeout(() => setUploadStatus(''), 3000);
+                  }
+                }
+              }
+
+              setImages(prev => prev.map(img => {
+                if (img.url === photoUrl) {
+                  return {
+                    ...img,
+                    isLoading: false,
+                    smileScore,
+                    hasWon: hasWon
+                  };
+                }
+                return img;
+              }));
+
+              // If not a winning smile, remove it from the array after showing feedback
+              if (!hasWon) {
+                setTimeout(() => {
+                  setImages(prev => prev.filter(img => img.url !== photoUrl));
+                }, 3000);
+              }
+
+              // Updated feedback messages
+              if (hasWon) {
+                setUploadStatus(`🎉 Amazing smile! Score: ${smileScore}/5 - You won tokens! 🎊`);
+              } else {
+                let message;
+                switch(smileScore) {
+                  case 1:
+                    message = `Come on, show us your teeth! Your smile score: ${smileScore}/5`;
+                    break;
+                  case 2:
+                    message = `Almost there! Give us a bigger smile! Score: ${smileScore}/5`;
+                    break;
+                  case 3:
+                    message = `So close! Just smile a bit more genuinely! Score: ${smileScore}/5`;
+                    break;
+                  default:
+                    message = `Try again with a bigger smile! Score: ${smileScore}/5`;
+                }
+                setUploadStatus(`${message} 😊`);
+              }
+              
+              setTimeout(() => {
+                setUploadStatus('');
+                setLoading(false);
+              }, 3000);
+            }
+          );
+        }
       } catch (error) {
         console.error('Error initializing contract:', error);
+        setUploadStatus('Failed to connect to Base network');
+        setTimeout(() => setUploadStatus(''), 3000);
       }
     };
 
     initContract();
-  }, [authenticated, wallets]);
 
-  const initCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.style.transform = 'scaleX(-1)';
+    return () => {
+      // Cleanup event listener
+      if (contract) {
+        contract.removeAllListeners("SmileAnalysisReceived");
       }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("Unable to access camera. Please ensure you have granted camera permissions.");
-    }
-  };
-
-  const uploadImage = async (blob: Blob) => {
-    const fileName = `${user!.id}/${Date.now()}.jpg`;
-    
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('smiles')
-      .upload(fileName, blob);
-
-    if (error) throw error;
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('smiles')
-      .getPublicUrl(fileName);
-
-    return { url: publicUrl };
-  };
-
-  const compressImage = async (blob: Blob): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = URL.createObjectURL(blob);
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 600;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Compression failed'));
-          },
-          'image/jpeg',
-          0.6  // Compression quality (0.6 = 60% quality)
-        );
-      };
-      img.onerror = reject;
-    });
-  };
+    };
+  }, [authenticated, wallets]);
 
   const capturePhoto = async () => {
     setLoading(true);
@@ -173,134 +262,81 @@ const App = () => {
       
       const compressedBlob = await compressImage(blob);
       setUploadStatus('Keep smiling...');
-      const uploadResult = await uploadImage(compressedBlob);
+      const uploadResult = await uploadImage(compressedBlob, user!.id);
       
-      // Submit to smart contract before database
-      setUploadStatus('Analyzing smile...');
-      if (!contract) throw new Error('Smart contract not initialized');
-      
-      // Get the oracle fee
-      const oracleFee = await contract.getOracleFee();
-      
-      // Call analyzeSmile with the required fee
-      const tx = await contract.analyzeSmile(uploadResult.url, {
-        value: oracleFee
-      });
-      setUploadStatus('Waiting for blockchain confirmation...');
-      await tx.wait(); // Wait for transaction to be mined
-      
-      const newImage = {
+      if (!contract) {
+        throw new Error('Smart contract not initialized');
+      }
+
+      // Verify network and get oracle fee
+      const provider = await wallets[0].getEthersProvider();
+      const network = await provider.getNetwork();
+      if (network.chainId !== BASE_CHAIN_ID) {
+        throw new Error('Please switch to Base network');
+      }
+
+      let oracleFee;
+      try {
+        oracleFee = await contract.getOracleFee();
+      } catch (error) {
+        console.error('Error getting oracle fee:', error);
+        throw new Error('Failed to get oracle fee');
+      }
+
+      // Create new image object with loading state
+      const newImage: Image = {
         url: uploadResult.url,
         timestamp: new Date().toISOString(),
         isLoading: true,
-        smileCount: 0
+        smileCount: 0,
+        smileScore: undefined,
+        hasWon: false
       };
       setImages(prev => [newImage, ...prev]);
 
-      // Insert into Supabase database
-      const { error } = await supabase
-        .from('photos')
-        .insert({
-          user_id: user!.id,
-          image_url: uploadResult.url,
-          timestamp: new Date().toISOString()
-        });
+      // Send transaction to analyze smile
+      const tx = await contract.analyzeSmile(uploadResult.url, {
+        value: oracleFee,
+        gasLimit: 500000
+      });
 
-      if (error) throw error;
-
-      setImages(prev => prev.map(img => 
-        img.url === newImage.url ? { ...img, isLoading: false } : img
-      ));
-
-      setUploadStatus('All set! 🎉');
-      setTimeout(() => {
-        setUploadStatus('');
-        setLoading(false);
-      }, 1500);
+      setUploadStatus('Waiting for blockchain confirmation...');
+      await tx.wait(1);
+      
+      setUploadStatus('Analyzing your smile... 😊');
     } catch (error) {
       console.error('Error processing photo:', error);
-      alert('Failed to process photo. Please try again.');
-      setUploadStatus('');
+      setUploadStatus(error.message || 'Failed to process photo');
+      setTimeout(() => setUploadStatus(''), 3000);
       setLoading(false);
     }
   };
 
-  const loadExistingPhotos = async () => {
+  const handleSmileBackLocal = async (imageUrl: string) => {
     try {
-      const { data, error } = await supabase
-        .from('photos')
-        .select('image_url, timestamp, smile_count')
-        .order('smile_count', { ascending: false })
-        .order('timestamp', { ascending: false });
-
-      if (error) throw error;
-
-      const photos = data.map(photo => ({
-        url: photo.image_url,
-        timestamp: photo.timestamp,
-        smileCount: photo.smile_count || 0
+      await handleSmileBack(imageUrl);
+      // Update the local state after successful smile back
+      setImages(prev => prev.map(img => {
+        if (img.url === imageUrl) {
+          return {
+            ...img,
+            smileCount: img.smileCount + 1
+          };
+        }
+        return img;
       }));
-      
-      setImages(photos);
     } catch (error) {
-      console.error('Error loading photos:', error);
+      console.error('Error handling smile back:', error);
     }
   };
 
-  const handleSmileBack = async (imageUrl: string) => {
+  const handleDeleteLocal = async (imageUrl: string, userId: string) => {
     try {
-      // First get the current smile count
-      const { data: currentData, error: fetchError } = await supabase
-        .from('photos')
-        .select('smile_count')
-        .eq('image_url', imageUrl)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Then update with the incremented value
-      const { error: updateError } = await supabase
-        .from('photos')
-        .update({ smile_count: (currentData.smile_count || 0) + 1 })
-        .eq('image_url', imageUrl);
-
-      if (updateError) throw updateError;
-
-      // Update UI
-      setImages(prev => prev.map(img => 
-        img.url === imageUrl 
-          ? { ...img, smileCount: (img.smileCount || 0) + 1 }
-          : img
-      ));
-    } catch (error) {
-      console.error('Error updating smile count:', error);
-      alert('Failed to smile back. Please try again.');
-    }
-  };
-
-  const deletePhoto = async (imageUrl: string) => {
-    try {
-      // Delete from Supabase database
-      const { error: dbError } = await supabase
-        .from('photos')
-        .delete()
-        .match({ user_id: user!.id, image_url: imageUrl });
-
-      if (dbError) throw dbError;
-
-      // Delete from storage
-      const fileName = imageUrl.split('/').pop(); // Get filename from URL
-      const { error: storageError } = await supabase.storage
-        .from('smiles')
-        .remove([`${user!.id}/${fileName}`]);
-
-      if (storageError) throw storageError;
-
-      // Update UI
+      await deletePhoto(imageUrl, userId);
+      // Update the local state after successful deletion
       setImages(prev => prev.filter(img => img.url !== imageUrl));
     } catch (error) {
       console.error('Error deleting photo:', error);
-      alert('Failed to delete photo. Please try again.');
     }
   };
 
@@ -368,58 +404,14 @@ const App = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {images.map((image, index) => (
-            <Card key={index} className="p-3 border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <div className={`relative ${image.isLoading ? shimmerStyle : ''}`}>
-                <img
-                  src={image.url}
-                  alt="Captured smile"
-                  className="w-full h-auto rounded-lg mb-3 border-2 border-black"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  {new Date(image.timestamp).toLocaleString()}
-                </p>
-                <div className="flex gap-2">
-                  {authenticated ? (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleSmileBack(image.url)}
-                      className="bg-[#FFD700] border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] h-8 flex items-center gap-1 px-2"
-                    >
-                      <Smile className="h-4 w-4" />
-                      <span>{image.smileCount || 0}</span>
-                    </Button>
-                  ) : (
-                    <div className="bg-[#FFD700] border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] h-8 flex items-center gap-1 px-2">
-                      <Smile className="h-4 w-4" />
-                      <span>{image.smileCount || 0}</span>
-                    </div>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="bg-[#90EE90] border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-2 h-8 w-8"
-                  >
-                    <Share className="h-4 w-4" />
-                  </Button>
-                  {authenticated && user && image.url.includes(`${user.id}/`) && (
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => deletePhoto(image.url)}
-                      className="bg-[#FFB6C1] border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-2 h-8 w-8"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <ImageGrid 
+          images={images}
+          authenticated={authenticated}
+          userId={user?.id}
+          onSmileBack={handleSmileBackLocal}
+          onDelete={handleDeleteLocal}
+          shimmerStyle={shimmerStyle}
+        />
       </div>
 
       {loading && (

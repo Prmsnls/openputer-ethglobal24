@@ -10,7 +10,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         appearance: {
           theme: 'light',
           accentColor: '#676FFF',
-          logo: 'https://your-logo-url',
+          logo: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png',
         },
         embeddedWallets: {
           createOnLogin: 'users-without-wallets',

@@ -60,6 +60,7 @@
     "embla-carousel-react": "^8.2.0",
     "face-api.js": "^0.22.2",
     "firebase": "^10.6.0",
+    "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",
     "js-beautify": "^1.14.11",
     "lucide-react": "^0.438.0",

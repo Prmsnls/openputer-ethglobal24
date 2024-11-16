@@ -9,6 +9,7 @@ import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { ImageGrid } from './ImageGrid';
 import { initCamera, uploadImage, compressImage, loadExistingPhotos, handleSmileBack, deletePhoto } from '../utils/camera';
+import GoFundSmiles from './GoFundSmiles';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -61,7 +62,7 @@ const App = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [uploadStatus, setUploadStatus] = useState<string | React.ReactNode>('');
   const [processedImages] = useState(new Set<string>());
 
   useEffect(() => {
@@ -189,7 +190,7 @@ const App = () => {
 
               // Updated feedback messages
               if (hasWon) {
-                setUploadStatus(`🎉 Amazing smile! Score: ${smileScore}/5 - You won tokens! 🎊`);
+                setUploadStatus(`🎉 Amazing smile! Score: ${smileScore}/5 - You won 0.001 USDC 🎊`);
               } else {
                 let message;
                 switch(smileScore) {
@@ -421,6 +422,10 @@ const App = () => {
             </div>
           )}
         </div>
+
+        {authenticated && (
+          <GoFundSmiles wallet={wallets[0]} />
+        )}
 
         <ImageGrid 
           images={images}

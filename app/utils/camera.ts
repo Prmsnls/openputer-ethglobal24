@@ -1,5 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Define Image type interface
+interface Image {
+  url: string;
+  timestamp: string;
+  smileCount: number;
+  smileScore: number;
+  hasWon: boolean;
+  isLoading: boolean;
+}
+
 // Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -8,6 +8,7 @@ interface Image {
   smileScore: number;
   hasWon: boolean;
   isLoading: boolean;
+  isNounish: boolean;
 }
 
 // Initialize Supabase client
@@ -35,7 +36,7 @@ export const initCamera = async (videoRef: React.RefObject<HTMLVideoElement>) =>
   }
 };
 
-export const uploadImage = async (blob: Blob, userId: string) => {
+export const uploadImage = async (blob: Blob, userId: string, isNounish: boolean) => {
   const fileName = `${userId}/${Date.now()}.jpg`;
   
   // Upload to Supabase Storage
@@ -50,7 +51,7 @@ export const uploadImage = async (blob: Blob, userId: string) => {
     .from('smiles')
     .getPublicUrl(fileName);
 
-  return { url: publicUrl };
+  return { url: publicUrl, isNounish };
 };
 
 export const compressImage = async (blob: Blob): Promise<Blob> => {
@@ -111,7 +112,8 @@ export const loadExistingPhotos = async (): Promise<Image[]> => {
     smileCount: photo.smile_count || 0,
     smileScore: photo.smile_score,
     hasWon: photo.smile_score > 3,
-    isLoading: false
+    isLoading: false,
+    isNounish: photo.is_nounish || false
   }));
 };
 

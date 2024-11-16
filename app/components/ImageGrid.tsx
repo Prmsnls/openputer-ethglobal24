@@ -4,6 +4,7 @@ import { Smile, Share, Trash2, DollarSign, Star } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import html2canvas from 'html2canvas';
+import { NOUNS_SVG } from '../constants/nouns';
 
 interface Image {
   url: string;
@@ -12,6 +13,7 @@ interface Image {
   smileCount: number;
   smileScore?: number;
   hasWon?: boolean;
+  isNounish: boolean;
 }
 
 interface ImageGridProps {
@@ -22,6 +24,7 @@ interface ImageGridProps {
     smileCount: number;
     smileScore?: number;
     hasWon?: boolean;
+    isNounish: boolean;
   }>;
   authenticated: boolean;
   userId?: string;
@@ -83,6 +86,17 @@ export const ImageGrid = ({
                 alt="Captured smile"
                 className="w-full h-[280px] object-cover rounded-lg mb-3 border-2 border-black"
               />
+              {(image.isNounish) && (
+                <div 
+                  className="absolute top-2 w-12 h-12 scale-75"
+                  style={{
+                    left: '20%',
+                    transform: 'translateX(-50%) scale(0.75)',
+                    transformOrigin: 'center top'
+                  }}
+                  dangerouslySetInnerHTML={{ __html: NOUNS_SVG }}
+                />
+              )}
               <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full border-2 border-black shadow-sm">
                 <div className="flex items-center gap-1">
                   <span className="font-bold">

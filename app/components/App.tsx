@@ -10,6 +10,7 @@ import { ethers } from 'ethers';
 import { ImageGrid } from './ImageGrid';
 import { initCamera, uploadImage, compressImage, loadExistingPhotos, handleSmileBack, deletePhoto } from '../utils/camera';
 import GoFundSmiles from './GoFundSmiles';
+import { NOUNS_SVG } from '../constants/nouns';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -52,6 +53,7 @@ interface Image {
   smileCount: number;
   smileScore: number | undefined;
   hasWon: boolean | undefined;
+  isNounish: boolean;
 }
 
 const App = () => {
@@ -64,6 +66,7 @@ const App = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string | React.ReactNode>('');
   const [processedImages] = useState(new Set<string>());
+  const [nounsFilterEnabled, setNounsFilterEnabled] = useState(false);
 
   useEffect(() => {
     loadExistingPhotos().then(setImages);
@@ -158,7 +161,8 @@ const App = () => {
                       user_id: user!.id,
                       image_url: photoUrl,
                       timestamp: new Date().toISOString(),
-                      smile_score: smileScore
+                      smile_score: smileScore,
+                      is_nounish: nounsFilterEnabled
                     });
 
                   if (error) {
@@ -175,7 +179,8 @@ const App = () => {
                     ...img,
                     isLoading: false,
                     smileScore,
-                    hasWon: hasWon
+                    hasWon: hasWon,
+                    isNounish: nounsFilterEnabled
                   };
                 }
                 return img;
@@ -206,7 +211,7 @@ const App = () => {
                   default:
                     message = `Try again with a bigger smile! Score: ${smileScore}/5`;
                 }
-                setUploadStatus(`${message} 😊`);
+                setUploadStatus(`${message} ���`);
               }
               
               setTimeout(() => {
@@ -232,6 +237,44 @@ const App = () => {
       }
     };
   }, [authenticated, wallets]);
+
+  useEffect(() => {
+    if (nounsFilterEnabled && videoRef.current) {
+      const video = videoRef.current;
+      const overlay = document.createElement('div');
+      overlay.id = 'nouns-overlay';
+      overlay.innerHTML = NOUNS_SVG;
+      overlay.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 10;
+        width: 75%;
+        height: 75%;
+      `;
+
+      // Add these styles to make the SVG more visible
+      const svg = overlay.querySelector('svg');
+      if (svg) {
+        svg.style.cssText = `
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 80%;
+          height: auto;
+        `;
+      }
+      
+      video.parentElement?.appendChild(overlay);
+      
+      return () => {
+        document.getElementById('nouns-overlay')?.remove();
+      };
+    }
+  }, [nounsFilterEnabled]);
 
   const capturePhoto = async () => {
     setLoading(true);
@@ -263,7 +306,7 @@ const App = () => {
       
       const compressedBlob = await compressImage(blob);
       setUploadStatus('Keep smiling...');
-      const uploadResult = await uploadImage(compressedBlob, user!.id);
+      const uploadResult = await uploadImage(compressedBlob, user!.id, nounsFilterEnabled);
       
       if (!contract) {
         throw new Error('Smart contract not initialized');
@@ -284,14 +327,15 @@ const App = () => {
         throw new Error('Failed to get oracle fee');
       }
 
-      // Create new image object with loading state
+      // Create new image object with loading state and isNounish
       const newImage: Image = {
         url: uploadResult.url,
         timestamp: new Date().toISOString(),
         isLoading: true,
         smileCount: 0,
         smileScore: undefined,
-        hasWon: false
+        hasWon: false,
+        isNounish: nounsFilterEnabled
       };
       setImages(prev => [newImage, ...prev]);
 
@@ -388,6 +432,15 @@ const App = () => {
             className="w-full h-[360px] object-cover border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-black"
           />
           <canvas ref={canvasRef} className="hidden" />
+          
+          <Button
+            onClick={() => setNounsFilterEnabled(!nounsFilterEnabled)}
+            className={`absolute top-4 right-4 bg-white hover:bg-gray-100 text-black font-bold px-4 py-2 border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+              nounsFilterEnabled ? 'bg-[#90EE90]' : ''
+            }`}
+          >
+            {nounsFilterEnabled ? 'Feeling Nounish 🤓' : 'Feel Nounish?'}
+          </Button>
         </div>
         <div className="text-center mb-8 flex justify-center gap-4">
           {authenticated && (

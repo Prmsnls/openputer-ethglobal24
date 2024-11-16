@@ -10,7 +10,7 @@ const TWITTER_HANDLE = '@openputer'
 const TWITTER_CARD = 'social-twitter.png'
 const FACEBOOK_CARD = 'social-og.png'
 const THEME_COLOR = '#FFFFFF'
-const SITE_URL = 'https://zupe.app'
+const SITE_URL = 'https://smile.openputer.com'
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE_URL),
@@ -43,24 +43,24 @@ export const metadata: Metadata = {
 		telephone: false,
 	},
 	icons: [
-		{ rel: 'mask-icon', url: 'safari-pinned-tab.svg', color: THEME_COLOR },
-		{ rel: 'shortcut icon', url: '/favicon.svg' },
-		{ rel: 'icon', url: 'favicon-32x32.png', sizes: '32x32' },
-		{ rel: 'icon', url: 'favicon-16x16.png', sizes: '16x16' },
-		{ rel: 'apple-touch-icon', url: 'touch-icon-iphone.png' },
+		{ rel: 'mask-icon', url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png', color: THEME_COLOR },
+		{ rel: 'shortcut icon', url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png' },
+		{ rel: 'icon', url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png', sizes: '32x32' },
+		{ rel: 'icon', url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png', sizes: '16x16' },
+		{ rel: 'apple-touch-icon', url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png' },
 		{
 			rel: 'apple-touch-icon',
-			url: 'apple-touch-icon-152x152.png',
+			url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png',
 			sizes: '152x152',
 		},
 		{
 			rel: 'apple-touch-icon',
-			url: 'apple-touch-icon-180x180.png',
+			url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png',
 			sizes: '180x180',
 		},
 		{
 			rel: 'apple-touch-icon',
-			url: 'apple-touch-icon-167x167.png',
+			url: 'https://pub-0a8864c7b35943799c57616bf42c2669.r2.dev/positive-icon.png',
 			sizes: '167x167',
 		},
 	],

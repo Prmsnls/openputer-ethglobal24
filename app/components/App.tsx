@@ -366,7 +366,7 @@ const App = () => {
             ref={videoRef}
             autoPlay
             playsInline
-            className="w-full h-[360px] object-cover border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-black"
+            className="w-full h-[270px] object-cover border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-black"
           />
           <canvas ref={canvasRef} className="hidden" />
         </div>

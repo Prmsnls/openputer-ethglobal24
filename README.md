@@ -1,22 +1,43 @@
 # 😊 Smile to Make Money 💰
 
-A fun, interactive web application that lets users capture and share smiles while earning virtual appreciation through smile-back interactions.
+An innovative Web3 application that uses Openputer AI Oracle to analyze your smile and rewards genuine happiness with cryptocurrency. Powered by blockchain technology, this dApp creates a unique intersection of artificial intelligence, emotional expression, and digital rewards.
 
-## Features
+## How It Works
 
-- 📸 Real-time camera feed with selfie mode
-- 🖼️ Photo capture with automatic image compression
-- 👍 Social interactions with "smile back" feature
-- 🗑️ Personal photo management
-- 🌐 Share functionality
-- 📱 Responsive design for all devices
+1. 📸 Capture your smile through the app
+2. 🤖 Openputer AI Oracle analyzes your smile's authenticity (scored 1-5)
+3. ✨ Genuine smiles (score > 3) earn cryptocurrency rewards
+4. 🌐 Winning smiles are stored on-chain and in our gallery
 
 ## Technical Stack
 
-- **Frontend**: Next.js with TypeScript
-- **UI Components**: Custom components with Tailwind CSS
-- **Icons**: Lucide React
-- **Styling**: Custom neomorphic design with playful shadows
+### Frontend
+- Next.js with TypeScript
+- Tailwind CSS for styling
+- Privy for Web3 authentication
+- ethers.js for blockchain interactions
+
+### Backend
+- Supabase for photo storage and metadata
+- Real-time blockchain event processing
+- Optimized image compression pipeline
+
+## Features
+
+- 🔐 Web3 wallet authentication via Privy
+- 📸 Real-time camera feed with selfie mode
+- 🤖 Decentralized AI smile analysis via Openputer
+- 💰 Automatic token rewards for genuine smiles
+- 👥 Social interactions with "smile back" feature
+- 🖼️ Persistent gallery for winning smiles
+- 📱 Responsive design for all devices
+
+## Smart Contract Features
+
+- Decentralized smile analysis via Openputer AI Oracle
+- Real-time reward distribution
+- Transparent scoring system
+- Gas-optimized operations
 
 ## Getting Started
 
@@ -25,7 +46,11 @@ A fun, interactive web application that lets users capture and share smiles whil
    ```bash
    npm install
    ```
-3. Set up your environment variables
+3. Configure environment variables:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+   ```
 4. Run the development server:
    ```bash
    npm run dev
@@ -37,26 +62,37 @@ A fun, interactive web application that lets users capture and share smiles whil
 - `user_id`: string
 - `image_url`: string
 - `timestamp`: timestamp
+- `smile_score`: number
 - `smile_count`: integer
 
-## Features in Detail
+## Technical Details
 
 ### Image Processing
-- Automatic image compression
+- Automatic compression for optimal storage
 - Maximum dimensions: 800x600
-- JPEG compression with 60% quality
-- Mirrored selfie view
+- JPEG optimization with quality preservation
+- Mirrored selfie view for natural interaction
 
-### User Experience
-- Persistent user identification
-- Loading states with animated feedback
-- Optimistic UI updates
-- Error handling with user-friendly messages
+### Blockchain Integration
+- Base Network compatibility
+- Openputer AI Oracle for decentralized smile analysis
+- Gas-efficient smart contract design
+- Real-time event processing
+
+### Security
+- Secure wallet authentication
+- Protected image storage
+- Rate limiting on submissions
+- Sybil resistance through wallet verification
 
 ## Contributing
 
-Feel free to submit issues and pull requests!
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+## License
+
+MIT
 
 ---
 
-Built with ❤️ and 😊
+Built with ❤️ and 😊 on Base Network, powered by Openputer AI Oracle

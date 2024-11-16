@@ -43,7 +43,7 @@ export const ImageGrid = ({
             <img
               src={image.url}
               alt="Captured smile"
-              className="w-full h-auto rounded-lg mb-3 border-2 border-black"
+              className="w-full h-[280px] object-cover rounded-lg mb-3 border-2 border-black"
             />
             <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full border-2 border-black shadow-sm">
               <div className="flex items-center gap-1">

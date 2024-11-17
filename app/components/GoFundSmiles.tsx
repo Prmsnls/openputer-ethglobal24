@@ -27,6 +27,7 @@ const GoFundSmiles = ({ wallet }: GoFundSmilesProps) => {
   const [totalFunds, setTotalFunds] = useState<string>("0");
   const [userBalance, setUserBalance] = useState<string>("0");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [txHash, setTxHash] = useState<string>("");
 
   useEffect(() => {
     const fetchBalances = async () => {
@@ -74,6 +75,7 @@ const GoFundSmiles = ({ wallet }: GoFundSmilesProps) => {
       const parsedAmount = ethers.utils.parseUnits(amount, decimals);
 
       const tx = await usdcContract.transfer(RECIPIENT_ADDRESS, parsedAmount);
+      setTxHash(tx.hash);
       await tx.wait();
 
       setAmount("");
@@ -207,7 +209,10 @@ const GoFundSmiles = ({ wallet }: GoFundSmilesProps) => {
       
       <Modal 
         isOpen={showSuccessModal} 
-        onClose={() => setShowSuccessModal(false)}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setTxHash("");
+        }}
       >
         <div className="text-center">
           <div className="flex justify-center mb-4">
@@ -229,8 +234,37 @@ const GoFundSmiles = ({ wallet }: GoFundSmilesProps) => {
             Your generous donation will help ai spread more smiles worldwide! 😊
           </p>
           
+          {txHash && (
+            <div className="mb-6">
+              <a
+                href={`https://base.blockscout.com/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
+              >
+                View on Explorer
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </a>
+            </div>
+          )}
+          
           <Button
-            onClick={() => setShowSuccessModal(false)}
+            onClick={() => {
+              setShowSuccessModal(false);
+              setTxHash("");
+            }}
             className="bg-[#90EE90] hover:bg-[#7CDF7C] text-black font-bold px-6 py-3 
               border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
               transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"

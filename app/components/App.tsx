@@ -69,6 +69,11 @@ const App = () => {
   const [nounsFilterEnabled, setNounsFilterEnabled] = useState(false);
 
   useEffect(() => {
+    const savedValue = localStorage.getItem('nounsFilterEnabled') === 'true';
+    setNounsFilterEnabled(savedValue);
+  }, []);
+
+  useEffect(() => {
     loadExistingPhotos().then(setImages);
     initCamera(videoRef);
     
@@ -155,6 +160,7 @@ const App = () => {
 
                 if (!existingPhoto) {
                   // Only insert if photo doesn't exist
+                  const isNounish = localStorage.getItem('nounsFilterEnabled') === 'true';
                   const { error } = await supabase
                     .from('photos')
                     .insert({
@@ -162,7 +168,8 @@ const App = () => {
                       image_url: photoUrl,
                       timestamp: new Date().toISOString(),
                       smile_score: smileScore,
-                      is_nounish: nounsFilterEnabled
+                      is_nounish: isNounish,
+                      smile_count: 0
                     });
 
                   if (error) {
@@ -211,7 +218,7 @@ const App = () => {
                   default:
                     message = `Try again with a bigger smile! Score: ${smileScore}/5`;
                 }
-                setUploadStatus(`${message} ���`);
+                setUploadStatus(`${message} `);
               }
               
               setTimeout(() => {
@@ -398,6 +405,12 @@ const App = () => {
     before:to-transparent
   `;
 
+  const toggleNounsFilter = () => {
+    const newValue = !nounsFilterEnabled;
+    setNounsFilterEnabled(newValue);
+    localStorage.setItem('nounsFilterEnabled', String(newValue));
+  };
+
   return (
     <div className="bg-yellow-100 min-h-screen">
       <div className="container mx-auto px-4 py-8 max-w-[1200px]">
@@ -434,7 +447,7 @@ const App = () => {
           <canvas ref={canvasRef} className="hidden" />
           
           <Button
-            onClick={() => setNounsFilterEnabled(!nounsFilterEnabled)}
+            onClick={toggleNounsFilter}
             className={`absolute top-4 right-4 bg-white hover:bg-gray-100 text-black font-bold px-4 py-2 border-[3px] border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
               nounsFilterEnabled ? 'bg-[#90EE90]' : ''
             }`}

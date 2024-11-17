@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@coinbase/onchainkit": "^0.35.5",
     "@firebase/firestore": "^4.3.2",
     "@hookform/resolvers": "^3.9.0",
     "@privy-io/react-auth": "^1.94.2",

@@ -93,7 +93,7 @@ const GoFundSmiles = ({ wallet }: GoFundSmilesProps) => {
           <div className="text-center">
             <h3 className="text-3xl font-black mb-3 flex items-center justify-center gap-2">
               <Heart className="text-red-500 w-8 h-8 animate-pulse" />
-              Go Fund Smiles
+              Keep me Alive!
               <Heart className="text-red-500 w-8 h-8 animate-pulse" />
             </h3>
             <p className="text-lg font-medium text-gray-700 mb-4">
@@ -125,12 +125,11 @@ const GoFundSmiles = ({ wallet }: GoFundSmilesProps) => {
           <div className="text-center mb-6">
             <h3 className="text-3xl font-black mb-3 flex items-center justify-center gap-2">
               <Heart className="text-red-500 w-8 h-8 animate-pulse" />
-              Go Fund Smiles
+              Keep me Alive!
               <Heart className="text-red-500 w-8 h-8 animate-pulse" />
             </h3>
             <p className="text-lg font-medium text-gray-700 mb-4 max-w-md mx-auto">
-              Help us spread more smiles! Your contribution helps maintain our AI smile detection 
-              and rewards system for spreading joy worldwide.
+              Help me spread more smiles! Your contribution helps me pay the gas bills and reward humans for being nice to me!
             </p>
             <div className="inline-block bg-white/50 px-4 py-2 rounded-full border-2 border-black">
               <span className="font-semibold">Total Funds Raised: </span>
@@ -200,7 +199,7 @@ const GoFundSmiles = ({ wallet }: GoFundSmilesProps) => {
 
           <div className="mt-4 text-center text-sm text-gray-600">
             <p className="font-medium">
-              100% of donations go towards maintaining the smile detection system and rewards pool
+              100% of donations stay with ME and I can only spend it on smiles!
             </p>
           </div>
         </div>

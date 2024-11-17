@@ -416,10 +416,10 @@ const App = () => {
       <div className="container mx-auto px-4 py-8 max-w-[1200px]">
         <div className="bg-[#FFE5E5] border-[3px] border-black rounded-lg p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12 max-w-2xl mx-auto">
           <h1 className="text-4xl font-black text-center mb-6 transform -rotate-2">
-            Why so serious? 🤔
+            Hi, I'm Mr. Based Smiles 😁
           </h1>
           <h2 className="text-2xl font-bold text-center mb-6 transform rotate-1">
-            😁 Smile and Make 0.001 
+             Smile and I will give you 0.001 
             <img 
               src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" 
               alt="USDC" 
@@ -433,7 +433,7 @@ const App = () => {
             />
           </h2>
           <p className="text-lg font-semibold text-center bg-[#90EE90] border-[3px] border-black rounded-md p-3 transform -rotate-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            On-chain smile analysis and token distribution on Base
+            Immutable ai agent living on Base, who loves big smiles!
           </p>
         </div>
 

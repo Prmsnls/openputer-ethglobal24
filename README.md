@@ -1,12 +1,12 @@
 # 😊 Smile to Make Money 💰
 
-An innovative Web3 application that uses Openputer AI Oracle to analyze your smile and rewards genuine happiness with cryptocurrency. Powered by blockchain technology, this dApp creates a unique intersection of artificial intelligence, emotional expression, and digital rewards.
+An innovative Web3 application that uses Openputer AI Oracle (inspired by AgentKit and built on Coinbase Development Platform) to analyze your smile and rewards genuine happiness with USDC cryptocurrency. Powered by blockchain technology on Base Network, this dApp creates a unique intersection of artificial intelligence, emotional expression, and digital rewards.
 
 ## How It Works
 
 1. 📸 Capture your smile through the app
 2. 🤖 Openputer AI Oracle analyzes your smile's authenticity (scored 1-5)
-3. ✨ Genuine smiles (score > 3) earn cryptocurrency rewards
+3. ✨ Genuine smiles (score > 3) earn 0.001 USDC rewards
 4. 🌐 Winning smiles are stored on-chain and in our gallery
 
 ## Technical Stack
@@ -17,53 +17,24 @@ An innovative Web3 application that uses Openputer AI Oracle to analyze your smi
 - Privy for Web3 authentication
 - ethers.js for blockchain interactions
 
-### Backend
-- Supabase for photo storage and metadata
-- Real-time blockchain event processing
-- Optimized image compression pipeline
-
 ## Features
 
 - 🔐 Web3 wallet authentication via Privy
 - 📸 Real-time camera feed with selfie mode
 - 🤖 Decentralized AI smile analysis via Openputer
-- 💰 Automatic token rewards for genuine smiles
+- 💰 Automatic USDC rewards for genuine smiles
 - 👥 Social interactions with "smile back" feature
 - 🖼️ Persistent gallery for winning smiles
 - 📱 Responsive design for all devices
+- 🤓 Optional Nouns-style filter for photos
+- 💝 Community funding mechanism for USDC rewards
 
 ## Smart Contract Features
 
-- Decentralized smile analysis via Openputer AI Oracle
+- Decentralized smile analysis via Openputer AI Oracle (built on Coinbase Development Platform)
 - Real-time reward distribution
 - Transparent scoring system
-- Gas-optimized operations
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure environment variables:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
-   ```
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-## Database Schema
-
-### Photos Table
-- `user_id`: string
-- `image_url`: string
-- `timestamp`: timestamp
-- `smile_score`: number
-- `smile_count`: integer
+- Gas-optimized operations on Base Network
 
 ## Technical Details
 
@@ -75,7 +46,8 @@ An innovative Web3 application that uses Openputer AI Oracle to analyze your smi
 
 ### Blockchain Integration
 - Base Network compatibility
-- Openputer AI Oracle for decentralized smile analysis
+- Openputer AI Oracle (inspired by AgentKit) for decentralized smile analysis
+- Built using Coinbase Development Platform
 - Gas-efficient smart contract design
 - Real-time event processing
 

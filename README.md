@@ -1,6 +1,6 @@
-# 😊 Smile to Make Money 💰
+# 😊 Based Smiles: Immutable USDC Rewards for Genuine Smiles 💰
 
-An innovative Web3 application that uses Openputer AI Oracle (inspired by AgentKit and built on Coinbase Development Platform) to analyze your smile and rewards genuine happiness with USDC cryptocurrency. Powered by blockchain technology on Base Network, this dApp creates a unique intersection of artificial intelligence, emotional expression, and digital rewards.
+An innovative Web3 application that uses Openputer AI Oracle (inspired by AgentKit and built on Coinbase Development Platform) to analyze your smile and rewards genuine happiness with USDC cryptocurrency. 
 
 ## How It Works
 
